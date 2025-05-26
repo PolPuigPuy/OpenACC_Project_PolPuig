@@ -1,0 +1,159 @@
+main.c:
+"configuration/config.h", line 19: warning: last line of file ends without a newline
+  #endif
+        ^
+
+"initialize/../randomizer/randomizer.h", line 20: warning: last line of file ends without a newline
+  #endif
+        ^
+
+"initialize/initialize.h", line 51: warning: last line of file ends without a newline
+  #endif
+        ^
+
+"training/training.h", line 37: warning: last line of file ends without a newline
+  #endif
+        ^
+
+"main.h", line 52: warning: last line of file ends without a newline
+  #endif
+        ^
+
+"main.c", line 189: warning: last line of file ends without a newline
+  }
+   ^
+
+freeInput:
+     25, Loop not vectorized/parallelized: contains call
+printRecognized:
+     44, Loop not vectorized/parallelized: contains call
+train_neural_net:
+     75, Generating enter data copyin(input[:num_training_patterns],num_neurons[:num_layers])
+     82, Loop not vectorized/parallelized: contains call
+     84, Generating enter data copyin(lay[:num_layers],input[i][:num_neurons->])
+     88, Loop not vectorized/parallelized: contains call
+     90, Generating enter data copyin(lay->actv[:num_neurons->])
+     95, Generated vector simd code for the loop
+     98, Loop not vectorized/parallelized: contains call
+    106, Loop not vectorized/parallelized: contains call
+    122, freeInput inlined, size=5 (inline) file main.c (24)
+          25, Loop not vectorized/parallelized: contains call
+test_nn:
+    138, Loop not vectorized: data dependency
+         Loop unrolled 4 times
+    142, printRecognized inlined, size=17 (inline) file main.c (31)
+          44, Loop not vectorized/parallelized: contains call
+    146, freeInput inlined, size=5 (inline) file main.c (24)
+          25, Loop not vectorized/parallelized: contains call
+main:
+    175, test_nn inlined, size=45 (inline) file main.c (126)
+         138, Loop not vectorized: data dependency
+              Loop unrolled 4 times
+         142, printRecognized inlined, size=17 (inline) file main.c (31)
+         142, Loop not vectorized/parallelized: contains call
+         146, Loop not vectorized/parallelized: contains call
+common/common.c:
+readImg:
+     37, Loop not vectorized/parallelized: not countable
+loadPatternSet:
+     55, readImg inlined, size=14 (inline) file common/common.c (27)
+          37, Loop not vectorized/parallelized: not countable
+printImg:
+     77, Loop not vectorized/parallelized: contains call
+     83, Loop not vectorized/parallelized: contains call
+configuration/config.c:
+"configuration/config.c", line 126: warning: last line of file ends without a newline
+  }
+   ^
+
+printConfiguration:
+     48, Loop not vectorized/parallelized: contains call
+     57, Loop not vectorized/parallelized: contains call
+readConfiguration:
+     70, checkError inlined, size=6 (inline) file configuration/config.c (36)
+     73, checkError inlined, size=6 (inline) file configuration/config.c (36)
+     76, checkError inlined, size=6 (inline) file configuration/config.c (36)
+     78, Loop not vectorized/parallelized: contains call
+     80, checkError inlined, size=6 (inline) file configuration/config.c (36)
+     86, checkError inlined, size=6 (inline) file configuration/config.c (36)
+     89, checkError inlined, size=6 (inline) file configuration/config.c (36)
+     92, Loop not vectorized/parallelized: contains call
+     98, checkError inlined, size=6 (inline) file configuration/config.c (36)
+    101, checkError inlined, size=6 (inline) file configuration/config.c (36)
+    104, checkError inlined, size=6 (inline) file configuration/config.c (36)
+    107, checkError inlined, size=6 (inline) file configuration/config.c (36)
+    110, checkError inlined, size=6 (inline) file configuration/config.c (36)
+    113, checkError inlined, size=6 (inline) file configuration/config.c (36)
+    116, checkError inlined, size=6 (inline) file configuration/config.c (36)
+    119, checkError inlined, size=6 (inline) file configuration/config.c (36)
+    122, checkError inlined, size=6 (inline) file configuration/config.c (36)
+    125, printConfiguration inlined, size=22 (inline) file configuration/config.c (46)
+          48, Loop not vectorized/parallelized: contains call
+          57, Loop not vectorized/parallelized: contains call
+layer/layer.c:
+randomizer/randomizer.c:
+"randomizer/randomizer.h", line 20: warning: last line of file ends without a newline
+  #endif
+        ^
+
+initialize/initialize.c:
+"initialize/../randomizer/randomizer.h", line 20: warning: last line of file ends without a newline
+  #endif
+        ^
+
+"initialize/initialize.h", line 51: warning: last line of file ends without a newline
+  #endif
+        ^
+
+"initialize/initialize.c", line 94: warning: last line of file ends without a newline
+  }
+   ^
+
+init:
+     26, create_architecture inlined, size=58 (inline) file initialize/initialize.c (48)
+          51, Loop not vectorized/parallelized: contains structure move
+          56, initialize_weights inlined, size=38 (inline) file initialize/initialize.c (65)
+          56, Loop not vectorized/parallelized: contains call
+dinit:
+     36, Loop not vectorized/parallelized: contains call
+     39, Loop not vectorized/parallelized: contains call
+create_architecture:
+     51, Loop not vectorized/parallelized: contains structure move
+     56, initialize_weights inlined, size=38 (inline) file initialize/initialize.c (65)
+          73, Loop not vectorized/parallelized: contains call
+          88, Loop not vectorized/parallelized: contains call
+initialize_weights:
+     73, Loop not vectorized/parallelized: contains call
+     88, Loop not vectorized/parallelized: contains call
+training/training.c:
+"training/training.h", line 37: warning: last line of file ends without a newline
+  #endif
+        ^
+
+feed_input:
+     23, Generating present(input[:1],num_neurons[:0],lay[:1])
+         Generating copyin(i) [if not already present]
+         Generating Tesla code
+         27, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
+     33, Generating update self(lay->actv[:num_neurons->])
+forward_prop:
+     56, Invariant if transformation
+     63, Generated vector simd code for the loop containing reductions
+back_prop:
+     99, Loop not vectorized: data dependency
+         Loop unrolled 4 times
+    109, Loop not vectorized: data dependency
+         Loop unrolled 8 times
+    114, Loop not vectorized: data dependency
+         Loop unrolled 8 times
+    126, Loop not vectorized: data dependency
+    130, Invariant if transformation
+    131, Invariant if transformation
+         Loop not vectorized: data dependency
+         Loop unrolled 8 times
+         Loop unrolled 4 times
+update_weights:
+    160, Loop not vectorized: data dependency
+         Loop unrolled 4 times
+    165, Loop not vectorized: data dependency
+         Loop unrolled 4 times
