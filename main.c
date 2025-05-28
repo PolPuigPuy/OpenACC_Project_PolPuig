@@ -71,11 +71,6 @@ void train_neural_net() {
     printf("Loading Patterns: Error!!\n");
     exit(-1);
   }
-  #pragma acc enter data copyin(desired_outputs[0:num_training_patterns])
-  for (int i = 0; i < num_training_patterns; i++) {
-    #pragma acc enter data copyin(desired_outputs[i][0:num_out_layer])
-  }
-
 
   int ranpat[num_training_patterns];
 
@@ -93,14 +88,6 @@ void train_neural_net() {
   for (int i = 0; i < num_layers; i++) {
 #pragma acc enter data copyin(lay[i].actv[0 : num_neurons[i]])
   }
-for (int i = 0; i < num_layers - 1; i++) {
-    #pragma acc enter data copyin(lay[i].out_weights[0 : num_neurons[i + 1] * num_neurons[i]])
-    #pragma acc enter data copyin(lay[i].bias[0 : num_neurons[i + 1]])
-    #pragma acc enter data create(lay[i].dw[0 : num_neurons[i + 1] * num_neurons[i]])
-    #pragma acc enter data create(lay[i].dbias[0 : num_neurons[i + 1]])
-    #pragma acc enter data create(lay[i].dactv[0 : num_neurons[i]])
-    #pragma acc enter data create(lay[i].dz[0 : num_neurons[i + 1]])
-}
 
   // Gradient Descent
   for (int it = 0; it < num_epochs; it++) {
@@ -123,12 +110,6 @@ for (int i = 0; i < num_layers - 1; i++) {
       feed_input(p);
       forward_prop();
       back_prop(p);
-
-      for (int i = 0; i < num_layers - 1; i++) {
-        #pragma acc update device(lay[i].dw[0 : num_neurons[i + 1] * num_neurons[i]])
-        #pragma acc update device(lay[i].dbias[0 : num_neurons[i + 1]])
-      }
-
       update_weights();
     }
   }
@@ -189,31 +170,9 @@ int main(int argc, char **argv) {
 
   // Train
   train_neural_net();
-  for (int i = 0; i < num_layers - 1; i++) {
-    #pragma acc update self(lay[i].out_weights[0:num_neurons[i+1] * num_neurons[i]])
-    #pragma acc update self(lay[i].bias[0:num_neurons[i+1]])
-  }
-
 
   // Test
   test_nn();
-
-  // Now clean up GPU memory
-  for (int i = 0; i < num_training_patterns; i++) {
-      #pragma acc exit data delete(input[i][0:num_neurons[0]])
-      #pragma acc exit data delete(desired_outputs[i][0:num_out_layer])
-  }
-  #pragma acc exit data delete(input[0:num_training_patterns])
-  #pragma acc exit data delete(desired_outputs[0:num_training_patterns])
-  #pragma acc exit data delete(num_neurons[0:num_layers])
-  #pragma acc exit data delete(lay[0:num_layers])
-  for (int i = 0; i < num_layers; i++) {
-      #pragma acc exit data delete(lay[i].actv[0:num_neurons[i]])
-      #pragma acc exit data delete(lay[i].out_weights[0:num_neurons[i+1] * num_neurons[i]])
-      #pragma acc exit data delete(lay[i].bias[0:num_neurons[i+1]])
-      #pragma acc exit data delete(lay[i].dw[0:num_neurons[i+1] * num_neurons[i]])
-      #pragma acc exit data delete(lay[i].dbias[0:num_neurons[i+1]])
-}
 
   // Stop measuring time and calculate the elapsed time
   gettimeofday(&end, 0);

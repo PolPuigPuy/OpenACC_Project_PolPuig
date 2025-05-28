@@ -15,12 +15,12 @@ module load nvhpc/21.2
 nvidia-smi
 
 #gcc -Ofast main.c common/common.c configuration/config.c layer/layer.c randomizer/randomizer.c initialize/initialize.c training/training.c -o exec -lm 
-nvc -O3 -acc=gpu -Minfo=all main.c common/common.c configuration/config.c layer/layer.c randomizer/randomizer.c initialize/initialize.c training/training.c -o exec
+#nvc -O3 -acc=gpu -Minfo=all main.c common/common.c configuration/config.c layer/layer.c randomizer/randomizer.c initialize/initialize.c training/training.c -o exec
 
 ./exec
 
 # Profiling:
-#nsys nvprof --print-gpu-trace ./exec #summary 
+nsys nvprof --print-gpu-trace ./exec #summary 
 #ncu --target-processes application-only --set full -f -o profile.ncu-rep ./exec
 
 #Visualize profiling:
