@@ -155,14 +155,20 @@ void update_weights(void) {
   // for (int i = 0; i < num_layers - 1; i++){
   //  #pragma acc update device(lay[i].dw[0 : num_neurons[i])
   // }
+  #pragma acc parallel loop collapse(3) present(lay, num_neurons, alpha)
   for (int i = 0; i < num_layers - 1; i++) {
     for (int j = 0; j < num_neurons[i + 1]; j++) {
-      for (int k = 0; k < num_neurons[i]; k++) { // Update Weights
+      for (int k = 0; k < num_neurons[i]; k++) {
         lay[i].out_weights[j * num_neurons[i] + k] -=
             alpha * lay[i].dw[j * num_neurons[i] + k];
       }
     }
-    for (int j = 0; j < num_neurons[i]; j++) // Update Bias
+  }
+
+  #pragma acc parallel loop collapse(2) present(lay, num_neurons, alpha)
+  for (int i = 0; i < num_layers - 1; i++) {
+    for (int j = 0; j < num_neurons[i + 1]; j++) {
       lay[i].bias[j] -= alpha * lay[i].dbias[j];
+    }
   }
 }

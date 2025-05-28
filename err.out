@@ -19,7 +19,7 @@ main.c:
   #endif
         ^
 
-"main.c", line 189: warning: last line of file ends without a newline
+"main.c", line 230: warning: last line of file ends without a newline
   }
    ^
 
@@ -28,30 +28,45 @@ freeInput:
 printRecognized:
      44, Loop not vectorized/parallelized: contains call
 train_neural_net:
-     75, Generating enter data copyin(input[:num_training_patterns],num_neurons[:num_layers])
-     82, Loop not vectorized/parallelized: contains call
-     84, Generating enter data copyin(lay[:num_layers],input[i][:num_neurons->])
-     88, Loop not vectorized/parallelized: contains call
-     90, Generating enter data copyin(lay->actv[:num_neurons->])
-     95, Generated vector simd code for the loop
-     98, Loop not vectorized/parallelized: contains call
-    106, Loop not vectorized/parallelized: contains call
-    122, freeInput inlined, size=5 (inline) file main.c (24)
+     73, Generating enter data copyin(desired_outputs[:num_training_patterns])
+     75, Loop not vectorized/parallelized: contains call
+     77, Generating enter data copyin(desired_outputs[i][:num_out_layer])
+     80, Generating enter data copyin(input[:num_training_patterns],num_neurons[:num_layers])
+     87, Loop not vectorized/parallelized: contains call
+     89, Generating enter data copyin(input[i][:num_neurons->],lay[:num_layers])
+     93, Loop not vectorized/parallelized: contains call
+     95, Generating enter data copyin(lay->actv[:num_neurons->])
+     96, Loop not vectorized/parallelized: contains call
+    103, Generating enter data copyin(lay->out_weights[:num_neurons->*num_neurons->])
+         Generating enter data create(lay->dz[:num_neurons->],lay->dbias[:num_neurons->],lay->dactv[:num_neurons->])
+         Generating enter data copyin(lay->bias[:num_neurons->])
+         Generating enter data create(lay->dw[:num_neurons->*num_neurons->])
+    108, Generated vector simd code for the loop
+    111, Loop not vectorized/parallelized: contains call
+    127, Loop not vectorized/parallelized: contains call
+    130, Generating update device(lay->dw[:num_neurons->*num_neurons->],lay->dbias[:num_neurons->])
+    141, freeInput inlined, size=5 (inline) file main.c (24)
           25, Loop not vectorized/parallelized: contains call
 test_nn:
-    138, Loop not vectorized: data dependency
+    157, Loop not vectorized: data dependency
          Loop unrolled 4 times
-    142, printRecognized inlined, size=17 (inline) file main.c (31)
+    161, printRecognized inlined, size=17 (inline) file main.c (31)
           44, Loop not vectorized/parallelized: contains call
-    146, freeInput inlined, size=5 (inline) file main.c (24)
+    165, freeInput inlined, size=5 (inline) file main.c (24)
           25, Loop not vectorized/parallelized: contains call
 main:
-    175, test_nn inlined, size=45 (inline) file main.c (126)
-         138, Loop not vectorized: data dependency
+    192, Loop not vectorized/parallelized: contains call
+    195, Generating update self(lay->out_weights[:num_neurons->*num_neurons->],lay->bias[:num_neurons->])
+    199, test_nn inlined, size=45 (inline) file main.c (145)
+         157, Loop not vectorized: data dependency
               Loop unrolled 4 times
-         142, printRecognized inlined, size=17 (inline) file main.c (31)
-         142, Loop not vectorized/parallelized: contains call
-         146, Loop not vectorized/parallelized: contains call
+         161, printRecognized inlined, size=17 (inline) file main.c (31)
+         161, Loop not vectorized/parallelized: contains call
+         165, Loop not vectorized/parallelized: contains call
+    202, Loop not vectorized/parallelized: contains call
+    205, Generating exit data delete(input[:num_training_patterns],desired_outputs[:num_training_patterns],desired_outputs[i][:num_out_layer],num_neurons[:num_layers],lay[:num_layers],input[i][:num_neurons->])
+    210, Loop not vectorized/parallelized: contains call
+    216, Generating exit data delete(lay->out_weights[:num_neurons->*num_neurons->],lay->dw[:num_neurons->*num_neurons->],lay->actv[:num_neurons->],lay->dbias[:num_neurons->],lay->bias[:num_neurons->])
 common/common.c:
 readImg:
      37, Loop not vectorized/parallelized: not countable
@@ -152,8 +167,31 @@ back_prop:
          Loop not vectorized: data dependency
          Loop unrolled 8 times
          Loop unrolled 4 times
+NVC++-S-1047-Inner collapsed loop bounds are not invariant in outer loop. (training/training.c: 161)
+NVC++-S-1047-Inner collapsed loop bounds are not invariant in outer loop. (training/training.c: 160)
+NVC++-S-1047-Inner collapsed loop bounds are not invariant in outer loop. (training/training.c: 170)
 update_weights:
-    160, Loop not vectorized: data dependency
-         Loop unrolled 4 times
-    165, Loop not vectorized: data dependency
-         Loop unrolled 4 times
+    149, Generating present(alpha,num_neurons[:1],lay[:1])
+         Generating Tesla code
+        159, #pragma acc loop seq collapse(3)
+        160,   collapsed */
+        161,   collapsed */
+    160, Accelerator restriction: induction variable live-out from loop: i
+         Loop carried dependence due to exposed use of lay[i1] prevents parallelization
+    161, Accelerator restriction: induction variable live-out from loop: i
+         Complex loop carried dependence of lay->out_weights->,lay->dw-> prevents parallelization
+         Loop carried dependence due to exposed use of lay[i1] prevents parallelization
+    162, Accelerator restriction: induction variable live-out from loop: i
+    164, Accelerator restriction: induction variable live-out from loop: i
+    165, Accelerator restriction: induction variable live-out from loop: i
+    166, Accelerator restriction: induction variable live-out from loop: i
+         Generating present(alpha,num_neurons[:1],lay[:1])
+         Generating Tesla code
+        169, #pragma acc loop seq collapse(2)
+        170,   collapsed */
+    170, Accelerator restriction: induction variable live-out from loop: i
+    171, Accelerator restriction: induction variable live-out from loop: i
+    172, Accelerator restriction: induction variable live-out from loop: i
+    173, Accelerator restriction: induction variable live-out from loop: i
+    174, Accelerator restriction: induction variable live-out from loop: i
+NVC++/x86-64 Linux 21.2-0: compilation completed with severe errors
