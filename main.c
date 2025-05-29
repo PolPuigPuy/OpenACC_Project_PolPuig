@@ -100,6 +100,21 @@ for (int i = 0; i < num_layers - 1; i++) {
   #pragma acc enter data create(lay[i].dbias[0:num_neurons[i+1]])
 }
 
+  // --- NOW ADD FORWARD_PROP DATA ---
+  // Make bias[], weights[], z[] and actv[] for each layer resident on the GPU
+  for (int layer = 1; layer < num_layers; ++layer) {
+    // 1) Bias vector for layer 'layer'
+    #pragma acc enter data copyin(lay[layer].bias[0 : num_neurons[layer]])
+    // 2) Weight matrix connecting (layer-1) → layer
+    #pragma acc enter data copyin( \
+      lay[layer-1].out_weights[0 : num_neurons[layer] * num_neurons[layer-1]] \
+    )
+    // 3) Allocate space for pre-activation z[layer]
+    #pragma acc enter data create(lay[layer].z[0 : num_neurons[layer]])
+    // 4) Allocate space for activation actv[layer]
+    #pragma acc enter data create(lay[layer].actv[0 : num_neurons[layer]])
+  }
+
   // Gradient Descent
   for (int it = 0; it < num_epochs; it++) {
     // Train patterns randomly
@@ -120,6 +135,13 @@ for (int i = 0; i < num_layers - 1; i++) {
       // TODO: Parallelize functions of training.c
       feed_input(p);
       forward_prop();
+
+      #pragma acc update host(lay[0].actv[0 : num_neurons[0]])
+      for (int layer = 1; layer < num_layers; ++layer) {
+        #pragma acc update host(lay[layer].z[0 : num_neurons[layer]])
+        #pragma acc update host(lay[layer].actv[0 : num_neurons[layer]])
+      }
+
       back_prop(p);
 
       // copy the fresh gradients to device
@@ -159,7 +181,8 @@ void test_nn() {
   for (int i = 0; i < num_test_patterns; i++) {
     for (int j = 0; j < num_neurons[0]; j++)
       lay[0].actv[j] = rSet[i][j];
-
+  
+    #pragma acc update device(lay[0].actv[0 : num_neurons[0]])
     forward_prop();
     printRecognized(i, lay[num_layers - 1]);
   }

@@ -26,8 +26,6 @@ void feed_input(int i) {
 #pragma acc parallel loop present(lay, input, num_neurons[0]) copyin(i)
   for (int j = 0; j < num_neurons[0]; j++)
     lay[0].actv[j] = input[i][j];
-#pragma acc update host(lay[0].actv[0 : num_neurons[0]])
-
   // HINT: It is recommended to continue with the next easier function
   // (update_weights).
 }
@@ -52,26 +50,26 @@ void feed_input(int i) {
  *
  */
 void forward_prop() {
-  for (int i = 1; i < num_layers; i++) {
-    for (int j = 0; j < num_neurons[i]; j++) {
-      lay[i].z[j] = lay[i].bias[j];
-      // This code has been changed to allow using the reduction clause.
-      // As an additional benefit, it also accelerates the sequential version.
-      // You may see that the "Encerts" changue slightly, but the acceleration
-      // achieved justifies this changue.
-      float temp = lay[i].z[j]; // Temporary variable for reduction
-      for (int k = 0; k < num_neurons[i - 1]; k++) {
-        temp += ((lay[i - 1].out_weights[j * num_neurons[i - 1] + k]) *
-                 lay[i - 1].actv[k]);
+  for (int i = 1; i < num_layers; ++i) {
+    #pragma acc parallel loop present(lay, num_neurons)
+    for (int j = 0; j < num_neurons[i]; ++j) {
+      float temp = lay[i].bias[j];
+
+      #pragma acc loop vector reduction(+:temp)
+      for (int k = 0; k < num_neurons[i-1]; ++k) {
+        temp += lay[i-1].out_weights[j * num_neurons[i-1] + k]
+              * lay[i-1].actv[k];
       }
-      lay[i].z[j] = temp;     // Store the result back to the structure
-      if (i < num_layers - 1) // Relu Activation Function for Hidden Layers
-        lay[i].actv[j] = ((lay[i].z[j]) < 0) ? 0 : lay[i].z[j];
-      else // Sigmoid Activation Function for Output Layer
-        lay[i].actv[j] = 1 / (1 + exp(-lay[i].z[j]));
+
+      lay[i].z[j] = temp;
+      if (i < num_layers - 1)
+        lay[i].actv[j] = (temp < 0.0f ? 0.0f : temp);
+      else
+        lay[i].actv[j] = 1.0f / (1.0f + expf(-temp));
     }
   }
 }
+
 
 /**
  * @brief Calcula el gradient que es necessari aplicar als pesos de les
