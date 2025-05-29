@@ -89,6 +89,16 @@ void train_neural_net() {
 #pragma acc enter data copyin(lay[i].actv[0 : num_neurons[i]])
   }
 
+//Adding alpha to the GPU 
+#pragma acc enter data copyin(alpha)
+
+for (int i = 0; i < num_layers - 1; i++) {
+    #pragma acc enter data copyin(lay[i].out_weights[0:num_neurons[i+1] * num_neurons[i]])
+    #pragma acc enter data copyin(lay[i].dw[0:num_neurons[i+1] * num_neurons[i]])
+    #pragma acc enter data copyin(lay[i].bias[0:num_neurons[i+1]])
+    #pragma acc enter data copyin(lay[i].dbias[0:num_neurons[i+1]])
+}
+
   // Gradient Descent
   for (int it = 0; it < num_epochs; it++) {
     // Train patterns randomly
@@ -110,6 +120,18 @@ void train_neural_net() {
       feed_input(p);
       forward_prop();
       back_prop(p);
+
+back_prop(p);
+
+// copy the fresh gradients to device
+for(int i = 0; i < num_layers-1; i++){
+  #pragma acc update device(lay[i].dw[0: num_neurons[i+1]*num_neurons[i]])
+  #pragma acc update device(lay[i].dbias[0: num_neurons[i+1]])
+}
+
+update_weights();
+
+
       update_weights();
     }
   }
@@ -119,6 +141,13 @@ void train_neural_net() {
   // for (int i = 0; i < num_layers - 1; i++){
   //  #pragma acc update device(lay[i].out_weights[0 : num_neurons[i])
   // }
+
+for (int i = 0; i < num_layers - 1; i++) {
+  #pragma acc exit data copyout(lay[i].out_weights[0 : num_neurons[i+1]*num_neurons[i]])
+  #pragma acc exit data copyout(lay[i].bias[0 : num_neurons[i+1]])
+}
+// Now the host’s lay[i].out_weights and lay[i].bias reflect the GPU’s updates!
+
   freeInput(num_training_patterns, input);
 }
 
