@@ -174,4 +174,8 @@ void update_weights(void) {
         lay[i].bias[j] -= alpha * lay[i].dbias[j];
     }
   }
+  for (int i = 0; i < num_layers - 1; i++) {
+    #pragma acc update host(lay[i].out_weights[0:num_neurons[i+1] * num_neurons[i]])
+    #pragma acc update host(lay[i].bias[0:num_neurons[i+1]])
+  }
 }
