@@ -92,11 +92,12 @@ void train_neural_net() {
 //Adding alpha to the GPU 
 #pragma acc enter data copyin(alpha)
 
+//Adding variables used in the update_weights function
 for (int i = 0; i < num_layers - 1; i++) {
-    #pragma acc enter data copyin(lay[i].out_weights[0:num_neurons[i+1] * num_neurons[i]])
-    #pragma acc enter data copyin(lay[i].dw[0:num_neurons[i+1] * num_neurons[i]])
-    #pragma acc enter data copyin(lay[i].bias[0:num_neurons[i+1]])
-    #pragma acc enter data copyin(lay[i].dbias[0:num_neurons[i+1]])
+  #pragma acc enter data copyin(lay[i].out_weights[0:num_neurons[i+1] * num_neurons[i]])
+  #pragma acc enter data copyin(lay[i].bias[0:num_neurons[i+1]])
+  #pragma acc enter data create(lay[i].dw[0:num_neurons[i+1] * num_neurons[i]])
+  #pragma acc enter data create(lay[i].dbias[0:num_neurons[i+1]])
 }
 
   // Gradient Descent
@@ -121,16 +122,11 @@ for (int i = 0; i < num_layers - 1; i++) {
       forward_prop();
       back_prop(p);
 
-back_prop(p);
-
-// copy the fresh gradients to device
-for(int i = 0; i < num_layers-1; i++){
-  #pragma acc update device(lay[i].dw[0: num_neurons[i+1]*num_neurons[i]])
-  #pragma acc update device(lay[i].dbias[0: num_neurons[i+1]])
-}
-
-update_weights();
-
+      // copy the fresh gradients to device
+      for (int i = 0; i < num_layers - 1; i++) {
+        #pragma acc update device(lay[i].dw[0:num_neurons[i+1] * num_neurons[i]])
+        #pragma acc update device(lay[i].dbias[0:num_neurons[i+1]])
+      }
 
       update_weights();
     }
@@ -141,13 +137,10 @@ update_weights();
   // for (int i = 0; i < num_layers - 1; i++){
   //  #pragma acc update device(lay[i].out_weights[0 : num_neurons[i])
   // }
-
-for (int i = 0; i < num_layers - 1; i++) {
-  #pragma acc exit data copyout(lay[i].out_weights[0 : num_neurons[i+1]*num_neurons[i]])
-  #pragma acc exit data copyout(lay[i].bias[0 : num_neurons[i+1]])
-}
-// Now the host’s lay[i].out_weights and lay[i].bias reflect the GPU’s updates!
-
+  for (int i = 0; i < num_layers - 1; i++) {
+  #pragma acc update host(lay[i].out_weights[0:num_neurons[i+1] * num_neurons[i]])
+  #pragma acc update host(lay[i].bias[0:num_neurons[i+1]])
+  }
   freeInput(num_training_patterns, input);
 }
 
